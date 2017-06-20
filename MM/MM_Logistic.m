@@ -12,7 +12,11 @@ function [beta, history] = MM_Logistic(Y, X, rho, maxiter, beps, veps)
 % default 1e-5.
 % veps: a scalar, tolerance of error of objective value. ooptional argument with
 % default 1e-8. 
-%
+% Author : Liu Wei. Email: weidliu321@163.com
+% Institute: Center of Statistical Research and School of Statistics,
+% Southwestern University of Finance and Economics, Chengdu,Sichuan, China
+% Date: 2017/06/18
+
 if(~exist('rho', 'var') || isempty(rho))
     rho=1;
 end
