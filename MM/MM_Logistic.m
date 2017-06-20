@@ -1,5 +1,5 @@
-function [beta, history] = MM_Lad(Y, X, rho, maxiter, beps, veps)
-%% This MATLB function is used to solve Least absolute distance regression by MM algorithm.
+function [beta, history] = MM_Logistic(Y, X, rho, maxiter, beps, veps)
+%% This MATLB function is used to solve Logistic regression by MM algorithm.
 % Syntax: [beta, history] = MM_Lasso(Y, X, rho, maxiter, beps, veps)
 % INPUT ARGUMENTS:
 % Y: n*1 matrix, response vector, n is observations(sample size).
@@ -19,33 +19,28 @@ end
 if(~exist('maxiter', 'var'))
     maxiter = 1000;
 end
-if(~exist('beps', 'var')) % check the existence OA
-    beps = 1.5e-5;
+if(~exist('beps', 'var'))
+    beps = 1e-9;
 end
 if(~exist('veps', 'var'))
-    veps = 2.5e-6;
+    veps = 1e-12;
 end
 %
-[n, p] = size(X);
-beta = zeros(p,1)+1e-3;
-k = 1;
+[~, p] = size(X);
+beta = ones(p,1);
 db = Inf;
-objv = Inf;
 objdif = Inf;
-
-while db > beps && k < maxiter && objdif > veps
+objv = Inf;
+k = 1;
+while db > beps && k <= maxiter && objdif > veps
     betatmp = beta;
-    H_total = zeros(p, p,n);
-    denom = abs(Y-X*beta);
-    Denom = (repmat(denom, 1, p)+ 1e-5)';  % ensure algorithm's stability.
-    c_num = repmat(Y, 1, p).* X; 
-    for j =1:p
-        H_total(j,:,:) = (repmat(X(:,j), 1, p).* X)' ./ Denom;
-    end
-    H = sum(H_total,3);
-    C = sum(c_num' ./ Denom, 2); % beter result can be obtained with eps stability.
-    beta = H \ C;
-    beta = rho*beta + (1-rho)*betatmp; % relaxation
+    xb = X*beta;
+    H = 1./ (1+exp(-xb));
+    M = (H.^2) ./ exp(xb);
+    S = 2*X'*(repmat(M, 1, p).*X);
+    C = sum((repmat(Y,1,p) + repmat(2*M.*xb,1,p) - repmat(H,1,p) ).*X, 1);
+    beta = S\ C';
+    beta = rho*beta + (1-rho)*betatmp;
     
     db = max(abs(beta-betatmp));
     history.errl2 = db; % sup norm error of |beta0- betatmp|
@@ -58,6 +53,7 @@ while db > beps && k < maxiter && objdif > veps
     k = k+1;
 end
 
-function objvalue = objfun(Y, X, beta)
-objvalue = sum(abs(Y- X*beta));
+function objvalue = objfun(Y, X, beta) % negative loglikelihood
+xb = X*beta;
+objvalue = sum(log(1+exp(xb))) - sum(Y.*xb);
 
