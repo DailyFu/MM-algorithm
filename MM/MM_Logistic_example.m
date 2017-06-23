@@ -8,5 +8,6 @@ P = 1./ (1+exp(-X*beta0));
 Y = binornd(1,P,n,1);
 % MM algorithm
 
-[beta, history] = MM_Logistic(Y,X)
+[beta, history] = MM_Logistic(Y,X) % default for optional arguments.
+[beta, history] = MM_Logistic(Y,X,[],[],[],[],'convexsupport')
 [beta, beta0]
